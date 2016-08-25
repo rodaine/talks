@@ -9,7 +9,19 @@ http://rodaine.com
 http://github.com/rodaine
 @rodaine
 
-* Why not just `ssh remote_host`?
+* Who am I?
+
+Core Services Team at Lyft
+
+- Libraries
+
+Previously, Core Platform & DevOps at VSCO
+
+- Services
+- Libraries
+- Deployment/Infrastructure Tools
+
+* Why not just `ssh example.com`?
 
 * Because golang.org/x/crypto/ssh gives you:
 
@@ -17,19 +29,19 @@ http://github.com/rodaine
 - Testability
 - Better error handling
 - More capabilities
-- And a more ergonomic CLI experience:
+- Ergonomics:
 
 *Either:*
 
-    $ ssh -o ProxyCommand='ssh proxy_host nc remote_server 22' remote_server
+    $ ssh -o ProxyCommand='ssh proxy.example.com nc example.com 22' example.com
 
 *Or:*
 
-    $ sshThru proxy_host remote_server
+    $ sshThru proxy.example.com example.com
 
 * Opening A Connection
 
-.code conn.go /Connect/,/END Connect/
+.code conn.go /func Connect/,/END Connect/
 
 - Can also specify timeouts, host checks, & more SSH goodies
 - Each *AuthMethod* is attempted in order
@@ -87,4 +99,3 @@ http://github.com/rodaine
 
 .code tunnel.go /ReverseTunnel/,
 
-* go get github.com/rodaine/sshutil

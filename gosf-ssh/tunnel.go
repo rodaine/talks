@@ -23,7 +23,7 @@ func Tunnel(client *ssh.Client, localHost, remoteHost string) {
 	}
 }
 
-// END TUNNEL
+// END TUNNEL OMIT
 
 func ReverseTunnel(client *ssh.Client, remoteHost string) {
 	listener, _ := client.Listen("tcp", remoteHost) // HL
