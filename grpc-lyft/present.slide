@@ -14,6 +14,8 @@ http://github.com/rodaine
 - Core Libraries @ Lyft
 - Previously Core Platform & DevOps @ VSCO
 
+.image howdy.gif 400 _
+
 * Background
 
 * Infrastructure @ Lyft
@@ -25,7 +27,8 @@ http://github.com/rodaine
 
 * What problems are we trying to solve?
 
-- XX% of errors in our Python services are type related
+- More services = more communication
+- 10K's daily errors in our Python services are type related
 - Documenting APIs are hard to maintain
 - No single source of truth for the shape of our data
 
@@ -35,22 +38,55 @@ http://github.com/rodaine
 - Enforce types at the service boundaries
 - IDLs become our single source of truth
 
-Standardize the API definitions and I/O
-
-
-- Enforce types at the service boundary
-
+* Tier-Zero Core Services
 
 * Tier-Zero Core Services
 
 - Primary apps of the business
-- gRPC interface
+- Go: type-safety & performance
 - proto3-based ODM for MongoDB & DynamoDB
+- gRPC interface
+- Interceptors used to augment RPC endpoints
+
+* gRPC Unary Interceptor
+
+.code interceptors.go /RequestID/,/END RequestID/
+
+- Logging, metrics, request-scoped info
+- RPC/Service independent
+- Only one per server, though, so...
+
+* Chaining Interceptors
+
+.code interceptors.go /Chain/,/END Chain/
+
+* Chaining Interceptors
+
+.code interceptors.go /InitServer/,
+
+- Provided with the Lyft "StdLib"
+
+* Future: protoc-gen-go plugin
+
+- Extra type-safety (Request/Response messages)
+- Service/RPC level customizability
+- Fork required, though 😕
+
+* Python Services
 
 * Python Services
 
 - Fronted by Gunicorn + Gevent
 - Flask-based HTTP servers
+- gRPC clients of tier-zero services
+- Want to also be gRPC servers
+- Just one issue...
+
+* Gevent + gRPC =
+
+.image grpc-gevent.gif 400 _
+
+* Envoy
 
 * Envoy
 
@@ -58,13 +94,26 @@ Standardize the API definitions and I/O
 - Modern C++11 codebase
 - HTTP/2 & *gRPC*fluent*
 - Extensible (L3/4/7) filter architecture
-- Service discovery, load balancing, health checks
-- Mesh routing, protocol agnostic, robust stats
+
+* Goal
+
+_"The_network_should_be_transparent_to_applications._When_network_and_application_problems_do_occur_it_should_be_easy_to_determine_the_source_of_the_problem."_
+
+* Design
+
+- Out of process architecture
+- Transparent to applications
+- Hot restart
+
+* Features
+
+- Service discovery
+- Load balancing
+- Health checks
+- Mesh routing
+- Protocol agnostic
+- Robust stats
 - Oh, ...and *Open*Source!*
-
-*Goal:*
-
-_The_network_should_be_transparent_to_applications._When_network_and_application_problems_do_occur_it_should_be_easy_to_determine_the_source_of_the_problem._
 
 * Topology
 
@@ -72,12 +121,74 @@ _The_network_should_be_transparent_to_applications._When_network_and_application
 
 * So what about gRPC?
 
+* Code Generation via protoc
 
-* Gevent + gRPC =
+- proto2 extensions
+- Custom message and field options
+- Generated Python client/server (Flask)
+- protoc plugin leveraging protoc-gen-go utilities
 
+* Proto Extensions + Options
 
+.code hello.proto
+
+* Generated Server
+
+.code hello.pb.py /SERVER/,/END SERVER/
+
+* Generated Client
+
+.code hello.pb.py /CLIENT/,/END CLIENT/
+
+* Envoy filter to upgrade/downgrade gRPC
+
+.image envoy-filter.png 575 _
+
+* gRPC + Envoy + gEvent =
+
+.image envoy-flask-gevent.gif 400 _
+
+* Organization & Process
+
+* Difficulties
+
+*protoc*and*plugins:*
+- Gnarly installation and API
+- Differences in behavior between language plugins
+
+*Previously...*
+- Each project rolled their own build
+- Divergent versions of protoc and plugins
+
+* Dockerized protoc + plugins
+
+- Pre-baked image with *protoc* and *protoc-gen-**
+- Build scripts for each language
+- Volume in *./proto/* and *./generated/*
+- Use a packagecloud 3.0 deb package
+
+  docker pull lyft_idl     # pull the builder image
+  git checkout -b updates  # create a new branch
+  vim proto/hello.proto    # modify IDL
+  make build               # builds generated code
+  git add * && git commit  # Commit IDL + generated
+
+* Lyft IDL Repository
+
+- Single repository for all message and service IDLs
+- All languages generated together
+- Generated code committed (it's okay, we promise)
+- Package manager based versioning (pip / glide)
+- CI verifies builds, linting, generated tests
+
+* Live Coding: gRPC KV Store + Envoy + Flask Python Client
+
+.image coding.gif 400 _
 
 * Links
 
 - Envoy: [[https://lyft.github.io/envoy]]
+- Example Dockerized protoc: [[https://github.com/twoism/grpc-gen]]
+- packagecloud proto 3.0 deb: [[https://packagecloud.io/capotej/protobuf3]]
 - This Talk: [[http://talks.rodaine.com/grpc-lyft]]
+- Office monkeys appear c/o Getty Images & Hart Productions
