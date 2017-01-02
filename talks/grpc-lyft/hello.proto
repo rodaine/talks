@@ -1,0 +1,9 @@
+service HelloWorld {
+  option (http_server_options).isHttpServer = true; // HL
+
+  rpc GetHttpHello (SayHelloRequest) returns (SayHelloResponse) {
+    option (http_options).path = "/api/gethello"; // HL
+    option (http_options).method = "get"; // HL
+    option (http_options).impl = "test_http.handle_hello_world_get"; // HL
+  }
+}

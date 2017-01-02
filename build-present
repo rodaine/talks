@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -e
+
+mkdir -p bin
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+	-o ./bin/present \
+	-ldflags="-s -w" \
+	golang.org/x/tools/cmd/present
+
+mkdir -p vendor/present
+rm -r vendor/present
+cp -r $GOPATH/src/golang.org/x/tools/cmd/present vendor/present

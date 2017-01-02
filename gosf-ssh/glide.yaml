@@ -1,6 +1,0 @@
-package: github.com/rodaine/talks
-import:
-- package: golang.org/x/crypto
-  subpackages:
-  - ssh
-  - ssh/agent
